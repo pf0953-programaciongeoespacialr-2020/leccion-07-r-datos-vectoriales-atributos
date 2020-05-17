@@ -1,0 +1,177 @@
+---
+title: "El lenguaje de programación R - Datos vectoriales - operaciones con atributos"
+author: "Manuel Vargas"
+date: "2020-05-18"
+output:
+  html_document:
+    theme: readable    
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: false    
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Recursos de interés
+* [Geocomputation with R - Chapter 3 Attribute data operations](https://geocompr.robinlovelace.net/attr.html)
+
+* Sitio web del curso: [GF-0604: Procesamiento de datos geográficos](https://geoprocesamiento-2020i.github.io/).
+* Datos utilizados durante el curso: [Datos del curso GF-0604: Procesamiento de datos geográficos](https://github.com/geoprocesamiento-2020i/datos).
+
+## Preparativos
+Paquetes y datos para ejemplos:
+```{r message = FALSE}
+# Paquete para manejo de datos vectoriales
+library(sf)
+
+# Paquete de Tidyverse para manipulación de datos
+library(dplyr)
+
+# Datos espaciales para ejemplos
+library(spData)
+```
+
+Adicionalmente a los conjuntos de datos contenidos en ```spData```, se utiliza el conjunto de datos de los cantones de Costa Rica publicado en la [Infraestructura Nacional de Datos Espaciales de Costa Rica (SNIT)](http://www.snitcr.go.cr/), cuyas geometrías se simplifican con la funcion [st_simplify()](https://r-spatial.github.io/sf/reference/geos_unary.html), para así facilitar su manipulación:
+```{r}
+# Dirección base del servicio WFS
+url_base_wfs <- "http://geos.snitcr.go.cr/be/IGN_5/wfs?"
+
+# Solicitud de la capa WFS:
+solicitud_wfs <- "request=GetFeature&service=WFS&version=2.0.0&typeName=IGN_5:limitecantonal_5k&outputFormat=application/json"
+
+# Recuperación de los datos en un data frame
+cr_cantones_crtm05 <- st_read(paste0(url_base_wfs, solicitud_wfs))
+
+# Tamaño del conjunto de datos original
+print(object.size(cr_cantones_crtm05), units="Mb")
+
+# Simplificación de las geometrías
+cr_cantones_crtm05_simp1 = st_simplify(cr_cantones_crtm05, dTolerance = 1000)
+
+# Transformación al CRS WGS84
+cr_cantones = st_transform(cr_cantones_crtm05_simp1, 4326)
+
+# Tamaño del conjunto de datos simplificado
+print(object.size(cr_cantones), units="Mb")
+```
+Nótese la disminución del tamaño del conjunto de datos de geometrías simplificadas con respecto al original.
+
+## Introducción
+Se les llama **atributos** a los elementos de datos no espaciales de un conjunto de datos geográficos. Los atributos generalmente son de tipo textual o numérico. Por ejemplo, en el conjunto de datos espaciales correspondiente a los países del mundo, los atributos son los campos correspondientes al nombre del país, la cantidad de habitantes, el producto interno bruto y otros.
+
+Las operaciones con atributos incluyen la **creación de subconjuntos (_subsetting_)**, la **agregación (_aggregation_)** y el **cruce de datos (_joining_)** . 
+
+## Manejo de atributos en el paquete sf
+El paquete [sf](https://cran.r-project.org/web/packages/sf/) define una clase también llamada ```sf```, la cual extiende la clase ```data.frame``` del paquete [base](https://stat.ethz.ch/R-manual/R-devel/library/base/html/00Index.html) de R. Los objetos de la clase ```sf``` tienen un registro (o _feature_) por cada observación y una columna por cada atributo. También tienen una columna especial para almacenar las geométrías (puntos, líneas, polígonos, etc.), la cual generalmente se denomina ```geometry``` o ```geom```. Esto permite que ```sf``` utilice métodos (i.e. funciones) de la clase ```data.frame```, tales como ```plot()``` y ```summary()```, entre otros.
+
+La lista de métodos de  ```sf``` puede obtenerse a través de la función  ```methods()```:
+
+```{r}
+# Métodos de la clase sf
+methods(class = "sf")
+```
+
+Además de ```data.frame```, ```sf``` es compatible con clases como [tbl]() y las del paquete [tibble](https://tibble.tidyverse.org/), las cuales pueden manipularse mediante los métodos de [dplyr](https://dplyr.tidyverse.org/). Esto que permite un manejo _tidy_ (ordenado, organizado) de los datos geoespaciales, de acuerdo con el enfoque de [Tidyverse](https://www.tidyverse.org/). 
+
+## Funciones básicas para manejo de data frames y objetos sf
+
+Funciones para obtener información básica de un data frame:
+```{r}
+# Clase del data frame cr_cantones
+class(cr_cantones)
+
+# Dimensiones (cantidad de filas y de columnas)
+dim(cr_cantones)
+
+# Cantidad de filas
+nrow(cr_cantones)
+
+# Cantidad de columnas
+ncol(cr_cantones)
+
+# Nombres de las columnas
+names(cr_cantones)
+```
+
+Remoción de la columna de geometría:
+```{r}
+# Remoción de la columna de geometría
+cr_cantones_df = st_drop_geometry(cr_cantones)
+
+# Nombres de las columnas
+names(cr_cantones_df)
+
+# Clase de world_df (nótese como no se muestra ya la clase sf)
+class(cr_cantones_df)
+
+# Tamaño del conjunto de datos original
+print(object.size(cr_cantones), units="Kb")
+# Tamaño del conjunto de datos sin geometrías
+print(object.size(cr_cantones_df), units="Kb")
+```
+La función [st_drop_geometry()](https://r-spatial.github.io/sf/reference/st_geometry.html) puede ser útil cuando, por ejemplo, solo se necesita trabajar con los atributos y la columna con la geometría consume demasiada memoria del computador.
+
+También es posible ocultar la columna de geometría de un conjunto de datos, al momento de desplegarlo, mediante la opción ```drop=TRUE```:
+```{r}
+# Sin drop=TRUE
+cr_cantones[1:10, c("canton", "area")]
+
+# Con drop=TRUE
+cr_cantones[1:10, c("canton", "area"), drop=TRUE]
+```
+
+
+## Creación de subconjuntos
+En esta sección, se explican las diferentes opciones para creación de subconjuntos, tanto con el paquete base de R como con dplyr. En resumen, estas son:
+
+- Con el paquete ```base```:
+  - Notación de ```[]``` y ```$```
+  - Función ```subset()```
+- Con el paquete ```dplyr```:
+  - Función ```select()```
+  - Función ```slice()```
+  - Función ```filter()```
+  - Función ```pull()```
+  
+
+### Notaciones y funciones del paquete ```base```
+#### Notación de ```[]``` y ```$```
+La notación de paréntesis cuadrados (```[]```) y el signo de dólar (```$```) permite crear subconjuntos con base en la posición de filas y de columnas, así como a través de la especificación de condiciones (i.e. expresiones _booleanas_).
+
+```{r message=FALSE, warning=FALSE, results='hide'}
+# Subconjunto especificado por posiciones de filas
+cr_cantones[1:10, ]
+```
+
+```{r}
+# Subconjunto especificado por posiciones de columnas
+cr_cantones[, 8:10]
+
+# Subconjunto especificado por nombres de columnas
+cr_cantones[, c("canton", "area", "provincia")]
+```
+
+Especificación mediante una condición:
+```{r}
+# Cantones de la provincia de Cartago
+cr_cantones[cr_cantones$provincia == "Cartago", c("canton", "provincia"), drop=TRUE]
+```
+
+#### Función ```subset()```
+La función [subset()](https://rdrr.io/r/base/subset.html) también retorna un subconjunto que cumple una condición:
+```{r}
+# Cantones con área >= 2000 km2
+subset(cr_cantones[, c("canton", "area"), drop=TRUE], 
+       area >= 2000
+)
+```
+
+### Funciones del paquete ```dplyr```
+Las funciones del paquete ```base``` de R son confiables y ampliamente usadas. Sin embargo, el enfoque más moderno de ```dplyr``` permite flujos de trabajo más intuitivos y es más rápido, debido a que se apoya en código escrito en el lenguaje C++. Esto es útil cuando se trabaja con conjuntos de datos grandes (_big data_) y cuando se necesita integración con bases de datos. Las principales funciones de ```dplyr``` para creación de subconjuntos son ```select()```, ```slice()```, ```filter()``` y ```pull()```.
+
+#### Función ```select()```
+
