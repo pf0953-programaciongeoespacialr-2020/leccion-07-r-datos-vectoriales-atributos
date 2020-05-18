@@ -40,6 +40,9 @@ Adicionalmente, se utiliza el conjunto de datos de los cantones de Costa Rica pu
 # Dirección base del servicio WFS
 url_base_wfs <- "http://geos.snitcr.go.cr/be/IGN_5/wfs?"
 
+# La lista de capas puede verse con el método GetCapabilities, en el siguiente URL:
+# http://geos.snitcr.go.cr/be/IGN_5/wfs?request=GetCapabilities
+
 # Solicitud de la capa WFS:
 solicitud_wfs <- "request=GetFeature&service=WFS&version=2.0.0&typeName=IGN_5:limitecantonal_5k&outputFormat=application/json"
 
