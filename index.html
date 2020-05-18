@@ -1539,6 +1539,7 @@ div.tocify {
 <h2>Recursos de interés</h2>
 <ul>
 <li><p><a href="https://geocompr.robinlovelace.net/attr.html">Geocomputation with R - Chapter 3 Attribute data operations</a></p></li>
+<li><p>Documentación del paquete dplyr de Tidyverse: <a href="https://dplyr.tidyverse.org/">A Grammar of Data Manipulation - dplyr</a></p></li>
 <li><p>Sitio web del curso: <a href="https://geoprocesamiento-2020i.github.io/">GF-0604: Procesamiento de datos geográficos</a>.</p></li>
 <li><p>Datos utilizados durante el curso: <a href="https://github.com/geoprocesamiento-2020i/datos">Datos del curso GF-0604: Procesamiento de datos geográficos</a>.</p></li>
 </ul>
@@ -1550,11 +1551,8 @@ div.tocify {
 library(sf)
 
 # Paquete de Tidyverse para manipulación de datos
-library(dplyr)
-
-# Datos espaciales para ejemplos
-library(spData)</code></pre>
-<p>Adicionalmente a los conjuntos de datos contenidos en <code>spData</code>, se utiliza el conjunto de datos de los cantones de Costa Rica publicado en la <a href="http://www.snitcr.go.cr/">Infraestructura Nacional de Datos Espaciales de Costa Rica (SNIT)</a>, cuyas geometrías se simplifican con la funcion <a href="https://r-spatial.github.io/sf/reference/geos_unary.html">st_simplify()</a>, para así facilitar su manipulación:</p>
+library(dplyr)</code></pre>
+<p>Adicionalmente, se utiliza el conjunto de datos de los cantones de Costa Rica publicado en la <a href="http://www.snitcr.go.cr/">Infraestructura Nacional de Datos Espaciales de Costa Rica (SNIT)</a>, cuyas geometrías se simplifican con la funcion <a href="https://r-spatial.github.io/sf/reference/geos_unary.html">st_simplify()</a>, para así facilitar su manipulación:</p>
 <pre class="r"><code># Dirección base del servicio WFS
 url_base_wfs &lt;- &quot;http://geos.snitcr.go.cr/be/IGN_5/wfs?&quot;
 
@@ -1581,7 +1579,7 @@ cr_cantones = st_transform(cr_cantones_crtm05_simp1, 4326)
 # Tamaño del conjunto de datos simplificado
 print(object.size(cr_cantones), units=&quot;Mb&quot;)</code></pre>
 <pre><code>## 0.1 Mb</code></pre>
-<p>Nótese la disminución del tamaño del conjunto de datos de geometrías simplificadas con respecto al original.</p>
+<p>El conjunto de datos de cantones queda almacenado en <code>cr_cantones</code>. Nótese la disminución del tamaño del conjunto de datos de geometrías simplificadas con respecto al original.</p>
 </div>
 <div id="introducción" class="section level2">
 <h2>Introducción</h2>
@@ -1590,7 +1588,7 @@ print(object.size(cr_cantones), units=&quot;Mb&quot;)</code></pre>
 </div>
 <div id="manejo-de-atributos-en-el-paquete-sf" class="section level2">
 <h2>Manejo de atributos en el paquete sf</h2>
-<p>El paquete <a href="https://cran.r-project.org/web/packages/sf/">sf</a> define una clase también llamada <code>sf</code>, la cual extiende la clase <code>data.frame</code> del paquete <a href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/00Index.html">base</a> de R. Los objetos de la clase <code>sf</code> tienen un registro (o <em>feature</em>) por cada observación y una columna por cada atributo. También tienen una columna especial para almacenar las geométrías (puntos, líneas, polígonos, etc.), la cual generalmente se denomina <code>geometry</code> o <code>geom</code>. Esto permite que <code>sf</code> utilice métodos (i.e. funciones) de la clase <code>data.frame</code>, tales como <code>plot()</code> y <code>summary()</code>, entre otros.</p>
+<p>El paquete <a href="https://cran.r-project.org/web/packages/sf/">sf</a> define una clase, también llamada <code>sf</code>, la cual extiende la clase <code>data.frame</code> del paquete <a href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/00Index.html">base</a> de R. Los objetos de la clase <code>sf</code> tienen un registro (o <em>feature</em>) por cada observación y una columna por cada atributo. También tienen una columna especial para almacenar las geométrías (puntos, líneas, polígonos, etc.), la cual generalmente se denomina <code>geometry</code> o <code>geom</code>. Esto permite que <code>sf</code> utilice métodos (i.e. funciones) de la clase <code>data.frame</code>, tales como <code>plot()</code> y <code>summary()</code>, entre otros.</p>
 <p>La lista de métodos de <code>sf</code> puede obtenerse a través de la función <code>methods()</code>:</p>
 <pre class="r"><code># Métodos de la clase sf
 methods(class = &quot;sf&quot;)</code></pre>
@@ -1701,26 +1699,25 @@ cr_cantones[1:10, c(&quot;canton&quot;, &quot;area&quot;), drop=TRUE]</code></pr
 </div>
 <div id="creación-de-subconjuntos" class="section level2">
 <h2>Creación de subconjuntos</h2>
-<p>En esta sección, se explican las diferentes opciones para creación de subconjuntos, tanto con el paquete base de R como con dplyr. En resumen, estas son:</p>
+<p>Frecuentemente, es necesario extrer subconjuntos del conjunto de datos original, para facilidad de manejo y para atender requerimientos específicos de un análisis. En esta sección, se explican las diferentes opciones para creación de subconjuntos, tanto con el paquete <code>base</code> de R como con <code>dplyr</code>. En resumen, estas son:</p>
 <ul>
 <li>Con el paquete <code>base</code>:
 <ul>
-<li>Notación de <code>[]</code> y <code>$</code></li>
-<li>Función <code>subset()</code></li>
+<li>La notación de <code>[]</code> y <code>$</code></li>
+<li>La función <code>subset()</code></li>
 </ul></li>
 <li>Con el paquete <code>dplyr</code>:
 <ul>
-<li>Función <code>select()</code></li>
-<li>Función <code>slice()</code></li>
-<li>Función <code>filter()</code></li>
-<li>Función <code>pull()</code></li>
+<li>La función <code>select()</code></li>
+<li>La función <code>slice()</code></li>
+<li>La función <code>filter()</code></li>
 </ul></li>
 </ul>
 <div id="notaciones-y-funciones-del-paquete-base" class="section level3">
-<h3>Notaciones y funciones del paquete <code>base</code></h3>
-<div id="notación-de-y" class="section level4">
-<h4>Notación de <code>[]</code> y <code>$</code></h4>
-<p>La notación de paréntesis cuadrados (<code>[]</code>) y el signo de dólar (<code>$</code>) permite crear subconjuntos con base en la posición de filas y de columnas, así como a través de la especificación de condiciones (i.e. expresiones <em>booleanas</em>).</p>
+<h3>Notaciones y funciones del paquete base</h3>
+<div id="la-notación-de-y" class="section level4">
+<h4>La notación de <code>[]</code> y <code>$</code></h4>
+<p>La notación de paréntesis cuadrados (<code>[]</code>) y el signo de dólar (<code>$</code>) permite crear subconjuntos con base en la posición de filas y de columnas, por medio de nombres de columnas y a través de la especificación de condiciones (i.e. expresiones <em>booleanas</em>).</p>
 <pre class="r"><code># Subconjunto especificado por posiciones de filas
 cr_cantones[1:10, ]</code></pre>
 <pre class="r"><code># Subconjunto especificado por posiciones de columnas
@@ -1774,8 +1771,8 @@ cr_cantones[cr_cantones$provincia == &quot;Cartago&quot;, c(&quot;canton&quot;, 
 ## 29  La Unión   Cartago
 ## 34  Alvarado   Cartago</code></pre>
 </div>
-<div id="función-subset" class="section level4">
-<h4>Función <code>subset()</code></h4>
+<div id="la-función-subset" class="section level4">
+<h4>La función subset()</h4>
 <p>La función <a href="https://rdrr.io/r/base/subset.html">subset()</a> también retorna un subconjunto que cumple una condición:</p>
 <pre class="r"><code># Cantones con área &gt;= 2000 km2
 subset(cr_cantones[, c(&quot;canton&quot;, &quot;area&quot;), drop=TRUE], 
@@ -1787,15 +1784,158 @@ subset(cr_cantones[, c(&quot;canton&quot;, &quot;area&quot;), drop=TRUE],
 ## 70       Pococí 2408.76
 ## 71   San Carlos 3352.31
 ## 74    Sarapiquí 2144.38</code></pre>
+<p>Los operadores lógicos y de comparación que pueden utilizarse en las condiciones de la función <code>subset()</code>, y en expresiones <em>booleanas</em> en general, se listan en la siguiente tabla:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Operador</th>
+<th align="left">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">==</td>
+<td align="left">igual a</td>
+</tr>
+<tr class="even">
+<td align="left">!=</td>
+<td align="left">distinto de</td>
+</tr>
+<tr class="odd">
+<td align="left">&gt;, &lt;</td>
+<td align="left">mayor que, menor que</td>
+</tr>
+<tr class="even">
+<td align="left">&gt;=, &lt;=</td>
+<td align="left">mayor o igual que, menor o igual que</td>
+</tr>
+<tr class="odd">
+<td align="left">&amp;, |, !</td>
+<td align="left">Operadores lógicos: y, o, no</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div id="funciones-del-paquete-dplyr" class="section level3">
-<h3>Funciones del paquete <code>dplyr</code></h3>
-<p>Las funciones del paquete <code>base</code> de R son confiables y ampliamente usadas. Sin embargo, el enfoque más moderno de <code>dplyr</code> permite flujos de trabajo más intuitivos y es más rápido, debido a que se apoya en código escrito en el lenguaje C++. Esto es útil cuando se trabaja con conjuntos de datos grandes (<em>big data</em>) y cuando se necesita integración con bases de datos. Las principales funciones de <code>dplyr</code> para creación de subconjuntos son <code>select()</code>, <code>slice()</code>, <code>filter()</code> y <code>pull()</code>.</p>
-<div id="función-select" class="section level4">
-<h4>Función <code>select()</code></h4>
+<h3>Funciones del paquete dplyr</h3>
+<p>Las funciones del paquete <code>base</code> de R son confiables y ampliamente usadas. Sin embargo, el enfoque más moderno de <code>dplyr</code> permite flujos de trabajo más intuitivos y es más rápido, debido a que se apoya en código escrito en el lenguaje C++. Esto es útil, por ejemplo, cuando se trabaja con conjuntos de datos grandes (<em>big data</em>) y cuando se necesita integración con bases de datos. Las principales funciones de <code>dplyr</code> para creación de subconjuntos son <code>select()</code>, <code>slice()</code> y <code>filter()</code>.</p>
+<div id="la-función-select" class="section level4">
+<h4>La función select()</h4>
+<p>La función <a href="https://dplyr.tidyverse.org/reference/select.html">select()</a> permite seleccionar y renombrar columnas de un conjunto de datos.</p>
+<pre class="r"><code># Selección de columnas
+select(cr_cantones, canton, provincia)</code></pre>
+<pre><code>## Simple feature collection with 82 features and 2 fields
+## geometry type:  GEOMETRY
+## dimension:      XY
+## bbox:           xmin: -87.09101 ymin: 5.500758 xmax: -82.55287 ymax: 11.21964
+## geographic CRS: WGS 84
+## First 10 features:
+##           canton  provincia                       geometry
+## 1     Corredores Puntarenas POLYGON ((-82.94161 8.42038...
+## 2        Golfito Puntarenas MULTIPOLYGON (((-83.16666 8...
+## 3      Coto Brus Puntarenas POLYGON ((-82.90501 8.77424...
+## 4            Osa Puntarenas POLYGON ((-83.83946 9.25534...
+## 5   Buenos Aires Puntarenas POLYGON ((-83.32101 9.38409...
+## 6  Pérez Zeledón   San José POLYGON ((-83.77329 9.59824...
+## 7         Quepos Puntarenas POLYGON ((-84.13572 9.57168...
+## 8      Talamanca      Limón POLYGON ((-82.89452 9.76752...
+## 9        Parrita Puntarenas POLYGON ((-84.30298 9.64968...
+## 10       Tarrazú   San José POLYGON ((-83.98178 9.71801...</code></pre>
+<pre class="r"><code># Selección y renombramiento de la columna area
+select(cr_cantones, canton, area_km2=area, provincia)</code></pre>
+<pre><code>## Simple feature collection with 82 features and 3 fields
+## geometry type:  GEOMETRY
+## dimension:      XY
+## bbox:           xmin: -87.09101 ymin: 5.500758 xmax: -82.55287 ymax: 11.21964
+## geographic CRS: WGS 84
+## First 10 features:
+##           canton area_km2  provincia                       geometry
+## 1     Corredores   623.61 Puntarenas POLYGON ((-82.94161 8.42038...
+## 2        Golfito  1753.42 Puntarenas MULTIPOLYGON (((-83.16666 8...
+## 3      Coto Brus   944.24 Puntarenas POLYGON ((-82.90501 8.77424...
+## 4            Osa  1932.03 Puntarenas POLYGON ((-83.83946 9.25534...
+## 5   Buenos Aires  2382.94 Puntarenas POLYGON ((-83.32101 9.38409...
+## 6  Pérez Zeledón  1901.08   San José POLYGON ((-83.77329 9.59824...
+## 7         Quepos   557.85 Puntarenas POLYGON ((-84.13572 9.57168...
+## 8      Talamanca  2792.23      Limón POLYGON ((-82.89452 9.76752...
+## 9        Parrita   483.22 Puntarenas POLYGON ((-84.30298 9.64968...
+## 10       Tarrazú   291.27   San José POLYGON ((-83.98178 9.71801...</code></pre>
+</div>
+<div id="la-función-slice" class="section level4">
+<h4>La función slice()</h4>
+<p><a href="https://dplyr.tidyverse.org/reference/slice.html">slice()</a> es el equivalente de <code>select()</code> para filas.</p>
+<pre class="r"><code># Subconjunto especificado mediante un rango de filas
+slice(cr_cantones, 1:10)</code></pre>
+</div>
+<div id="la-función-filter" class="section level4">
+<h4>La función filter()</h4>
+<p>La función <a href="https://dplyr.tidyverse.org/reference/filter.html">filter()</a> es el equivalente en <code>dplyr</code> de la función <code>subset()</code> del paquete <code>base</code>. Retorna los registros que cumplen con una condición:</p>
+<pre class="r"><code># Androides de &quot;La Guerra de las Galaxias&quot;
+filter(starwars, species==&quot;Droid&quot;)</code></pre>
+<pre><code>## # A tibble: 5 x 13
+##   name  height  mass hair_color skin_color eye_color birth_year gender homeworld
+##   &lt;chr&gt;  &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    
+## 1 C-3PO    167    75 &lt;NA&gt;       gold       yellow           112 &lt;NA&gt;   Tatooine 
+## 2 R2-D2     96    32 &lt;NA&gt;       white, bl~ red               33 &lt;NA&gt;   Naboo    
+## 3 R5-D4     97    32 &lt;NA&gt;       white, red red               NA &lt;NA&gt;   Tatooine 
+## 4 IG-88    200   140 none       metal      red               15 none   &lt;NA&gt;     
+## 5 BB8       NA    NA none       none       black             NA none   &lt;NA&gt;     
+## # ... with 4 more variables: species &lt;chr&gt;, films &lt;list&gt;, vehicles &lt;list&gt;,
+## #   starships &lt;list&gt;</code></pre>
+<p>Las funciones del paquete <code>dplyr</code> suelen ser utilizadas conjuntamente con el <a href="http://r4ds.had.co.nz/pipes.html">operador <em>pipe</em> (%&gt;%)</a>, el cual posibilita el “encadenamiento” de funciones: la salida de la función previa se convierte en el primer argumento de la siguiente función. En el siguiente ejemplo, el conjunto de datos <a href="https://dplyr.tidyverse.org/reference/starwars.html">starwars</a> se pasa como entrada a la función <code>filter()</code>, para filtrar los personajes humanos. Seguidamente, el resultado se pasa a la función <code>select()</code>, para seleccionar las columnas <code>name</code>, <code>homeworld</code> y <code>species</code>. Finalmente, la función <code>slice()</code> reduce el resultado a las 10 primeras filas.</p>
+<pre class="r"><code># Encadenamiento de funciones mediante pipe (%&gt;%)
+starwars %&gt;%
+filter(species == &quot;Human&quot;) %&gt;%
+select(name, homeworld, species) %&gt;%
+slice(1:10)</code></pre>
+<pre><code>## # A tibble: 10 x 3
+##    name               homeworld species
+##    &lt;chr&gt;              &lt;chr&gt;     &lt;chr&gt;  
+##  1 Luke Skywalker     Tatooine  Human  
+##  2 Darth Vader        Tatooine  Human  
+##  3 Leia Organa        Alderaan  Human  
+##  4 Owen Lars          Tatooine  Human  
+##  5 Beru Whitesun lars Tatooine  Human  
+##  6 Biggs Darklighter  Tatooine  Human  
+##  7 Obi-Wan Kenobi     Stewjon   Human  
+##  8 Anakin Skywalker   Tatooine  Human  
+##  9 Wilhuff Tarkin     Eriadu    Human  
+## 10 Han Solo           Corellia  Human</code></pre>
+<p>Una alternativa al uso de <em>pipes</em> es el anidamiento de las funciones:</p>
+<pre class="r"><code># Anidamiento de funciones
+slice(
+  select(
+    filter(
+      starwars,
+      species==&quot;Human&quot;
+    ),
+    name, homeworld, species
+  ),
+  1:10
+)</code></pre>
+<pre><code>## # A tibble: 10 x 3
+##    name               homeworld species
+##    &lt;chr&gt;              &lt;chr&gt;     &lt;chr&gt;  
+##  1 Luke Skywalker     Tatooine  Human  
+##  2 Darth Vader        Tatooine  Human  
+##  3 Leia Organa        Alderaan  Human  
+##  4 Owen Lars          Tatooine  Human  
+##  5 Beru Whitesun lars Tatooine  Human  
+##  6 Biggs Darklighter  Tatooine  Human  
+##  7 Obi-Wan Kenobi     Stewjon   Human  
+##  8 Anakin Skywalker   Tatooine  Human  
+##  9 Wilhuff Tarkin     Eriadu    Human  
+## 10 Han Solo           Corellia  Human</code></pre>
 </div>
 </div>
+</div>
+<div id="ejercicios" class="section level2">
+<h2>Ejercicios</h2>
+<ol style="list-style-type: decimal">
+<li>Mediante <em>pipes</em>, encadene un conjunto de funciones del paquete <code>dplyr</code> para desplegar el nombre, el área y la provincia de los cantones cuya área sea menor a 50 km2 y que se ubiquen en las provincias de Heredia o de Cartago.</li>
+<li>Repita el ejercicio anterior, utilizando funciones anidadas.</li>
+</ol>
 </div>
 
 
