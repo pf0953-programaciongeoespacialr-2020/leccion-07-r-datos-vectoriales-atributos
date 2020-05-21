@@ -327,7 +327,7 @@ El siguiente ejemplo utiliza otras funciones del paquete ```dplyr``` para encont
 ```{r}
 # Área y cantidad de cantones de las tres provincias más grandes
 cr_cantones %>% 
-  dplyr::select(area, provincia) %>% 
+  select(area, provincia) %>% 
   group_by(provincia) %>% 
   summarize(area = sum(area, na.rm = TRUE), cantidad_cantones = n()) %>% 
   arrange(desc(area)) %>%

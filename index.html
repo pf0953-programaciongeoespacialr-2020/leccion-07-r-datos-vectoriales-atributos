@@ -2058,7 +2058,7 @@ summarize(area_km2 = sum(area, na.rm = TRUE), cantidad_cantones = n())</code></p
 <p>El siguiente ejemplo utiliza otras funciones del paquete <code>dplyr</code> para encontrar las tres provincias más grandes y su respectiva área:</p>
 <pre class="r"><code># Área y cantidad de cantones de las tres provincias más grandes
 cr_cantones %&gt;% 
-  dplyr::select(area, provincia) %&gt;% 
+  select(area, provincia) %&gt;% 
   group_by(provincia) %&gt;% 
   summarize(area = sum(area, na.rm = TRUE), cantidad_cantones = n()) %&gt;% 
   arrange(desc(area)) %&gt;%
