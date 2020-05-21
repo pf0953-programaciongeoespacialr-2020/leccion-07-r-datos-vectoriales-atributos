@@ -33,6 +33,9 @@ library(sf)
 
 # Paquete de Tidyverse para manipulación de datos
 library(dplyr)
+
+# Paquete con conjuntos de datos geoespaciales
+library(spData)
 ```
 
 Adicionalmente, se utiliza el conjunto de datos de los cantones de Costa Rica publicado en la [Infraestructura Nacional de Datos Espaciales de Costa Rica (SNIT)](http://www.snitcr.go.cr/), cuyas geometrías se simplifican con la funcion [st_simplify()](https://r-spatial.github.io/sf/reference/geos_unary.html), para así facilitar su manipulación:
@@ -235,6 +238,120 @@ slice(
   ),
   1:10
 )
+```
+
+## Agregación
+Las operaciones de agregación realizan cálculos (suma, promedio, etc.) a partir de la agrupación de valores de variables. En esta sección, se explican funciones de agregación contenidas en los paquetes  ```stats ```, ```sf``` y ```dplyr```, las cuales son:
+
+- Del paquete ```stats```:
+  - La función ```aggregate()```
+- Del paquete ```sf```:
+  - La función ```aggregate()```  
+- Del paquete ```dplyr```:
+  - La función ```summarize()```
+
+Para los ejemplos, se utilizarán nuevamente datos publicados en la [Infraestructura Nacional de Datos Espaciales de Costa Rica (SNIT)](http://www.snitcr.go.cr/):
+```{r message=FALSE, warning=FALSE, results='hide'}
+# Recuperación de los conjuntos de datos de provincias y cantones de Costa Rica desde un servicio WFS
+
+# URL base
+url_base_wfs <- "http://geos.snitcr.go.cr/be/IGN_5/wfs?"
+
+# URL de las solicitudes de las capas
+solicitud_provincias_wfs <- "request=GetFeature&service=WFS&version=2.0.0&typeName=IGN_5:limiteprovincial_5k&outputFormat=application/json"
+solicitud_cantones_wfs <- "request=GetFeature&service=WFS&version=2.0.0&typeName=IGN_5:limitecantonal_5k&outputFormat=application/json"
+
+# Recuperación, simplificación y cambio de CRS de las capas
+st_read(paste0(url_base_wfs, solicitud_provincias_wfs)) %>%
+  st_simplify(dTolerance = 1000) %>% 
+  st_transform(4326) -> cr_provincias
+
+st_read(paste0(url_base_wfs, solicitud_cantones_wfs)) %>% 
+  st_simplify(dTolerance = 1000) %>% 
+  st_transform(4326) -> cr_cantones
+```
+
+```{r message=FALSE, warning=FALSE, results='hide'}
+# Mapeo de la capa de provincias
+plot(cr_provincias$geometry, axes=TRUE, graticule=TRUE)
+
+# Mapeo de la capa de cantones
+plot(cr_cantones$geometry, axes=TRUE, graticule=TRUE)
+```
+
+### La función aggregate() de stats
+La función [aggregate()](https://rdrr.io/r/stats/aggregate.html) del paquete ```stats``` aplica una función de agregación (ej. suma, promedio, mínimo, máximo) sobre una columna. El resultado es un objeto de tipo ```data.frame```.
+
+```{r}
+# Suma de áreas de cantones por provincia
+aggregate(data = cr_cantones, area ~ provincia, FUN = sum, na.rm = TRUE)
+```
+
+### La función aggregate() de sf
+```aggregate()``` es una [función genérica](https://adv-r.hadley.nz/s3.html#s3-methods), lo que significa que pueden comportarse de manera diferente, dependiendo de los valores de entrada. El paquete ```sf``` también provee una versión de [aggregate()](https://r-spatial.github.io/sf/reference/aggregate.sf.html), la cual se activa cuando recibe un objeto  ```sf ``` y se usa el argumento  ```by```. El resultado es un objeto de tipo ```sf```.
+
+```{r}
+# Suma de áreas de cantones por provincia
+aggregate(cr_cantones["area"], by = list(cr_cantones$provincia), FUN = sum, na.rm = TRUE)
+```
+
+### La función summarize()
+La función [summarize()](https://dplyr.tidyverse.org/reference/summarise.html) es el equivalente de ```aggregate()``` en el paquete ```dplyr```. Suele utilizarse conjuntamente con [group_by()](https://dplyr.tidyverse.org/reference/group_by.html), que especifica la variable a agrupar.
+
+```{r}
+# Suma de áreas de cantones por provincia
+cr_cantones %>%
+group_by(provincia) %>%
+summarize(area_km2 = sum(area, na.rm = TRUE))
+```
+
+Nótese que este enfoque permite renombrar las variables, como también se hace en el siguiente ejemplo:
+
+```{r}
+# Suma total de las áreas de cantones
+cr_cantones %>% 
+summarize(area_km2 = sum(area, na.rm = TRUE), cantidad_cantones = n())
+```
+
+El siguiente ejemplo utiliza otras funciones del paquete ```dplyr``` para encontrar las tres provincias más grandes y su respectiva área:
+
+```{r}
+# Área y cantidad de cantones de las tres provincias más grandes
+cr_cantones %>% 
+  dplyr::select(area, provincia) %>% 
+  group_by(provincia) %>% 
+  summarize(area = sum(area, na.rm = TRUE), cantidad_cantones = n()) %>% 
+  arrange(desc(area)) %>%
+  top_n(n = 3, wt = area) %>%
+  st_drop_geometry()
+```
+
+## Cruce de datos
+La combinación de datos ubicados en diferentes fuentes es una tarea común en análisis. Este tipo de operaciones se realizan con base en atributos que son comunes en los conjuntos de datos que se desea cruzar. El paquete ```dplyr``` proporciona varias [funciones para realizar cruces de datos](https://dplyr.tidyverse.org/reference/join.html), entre las que se encuentran:
+
+- La función ```left_join()```
+- La función ```inner_join()```
+
+### La función left_join()
+La función ```left_join()``` mantiene todos los registros de la tabla del lado izquierdo y agrega las columnas de la tabla del lado derecho, en los registros en los que hay coincidencia.
+
+```{r}
+# "Join" de los datos de producción de café. Ambas tablas comparten la columna name_long.
+world_coffee_1 <- left_join(world, coffee_data)
+
+# Mapeo de la producción de café en 2017
+plot(world_coffee_1["coffee_production_2017"], main="Producción mundial de café en 2017")
+```
+
+### La función inner_join()
+La función ```inner_join()``` retorna solamente aquellos registros que coinciden en ambas tablas.
+
+```{r}
+# "Join" de los datos de producción de café. Ambas tablas comparten la columna name_long.
+world_coffee_2 <- inner_join(world, coffee_data)
+
+# Mapeo de la producción de café en 2017
+plot(world_coffee_2["coffee_production_2017"], main="Producción mundial de café en 2017")
 ```
 
 ## Ejercicios
