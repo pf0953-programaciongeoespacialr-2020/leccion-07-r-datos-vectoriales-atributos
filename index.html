@@ -1982,7 +1982,12 @@ plot(cr_cantones$geometry, axes=TRUE, graticule=TRUE)</code></pre>
 <h3>La función aggregate() de stats</h3>
 <p>La función <a href="https://rdrr.io/r/stats/aggregate.html">aggregate()</a> del paquete <a href="https://rdrr.io/r/#stats">stats</a> aplica una función de agregación (ej. suma, promedio, mínimo, máximo) sobre una columna. El resultado es un objeto de tipo <code>data.frame</code>.</p>
 <pre class="r"><code># Suma de áreas de cantones por provincia
-aggregate(data = cr_cantones, area ~ provincia, FUN = sum, na.rm = TRUE)</code></pre>
+aggregate(
+  data = cr_cantones, 
+  area ~ provincia, 
+  FUN = sum, 
+  na.rm = TRUE
+)</code></pre>
 <pre><code>##    provincia     area
 ## 1   Alajuela  9772.25
 ## 2    Cartago  3093.23
@@ -1996,7 +2001,12 @@ aggregate(data = cr_cantones, area ~ provincia, FUN = sum, na.rm = TRUE)</code><
 <h3>La función aggregate() de sf</h3>
 <p><code>aggregate()</code> es una <a href="https://adv-r.hadley.nz/s3.html#s3-methods">función genérica</a>, lo que significa que pueden comportarse de manera diferente, dependiendo de los valores de entrada. El paquete <code>sf</code> también provee una versión de <a href="https://r-spatial.github.io/sf/reference/aggregate.sf.html">aggregate()</a>, la cual se activa cuando recibe un objeto <code>sf</code> y se usa el argumento <code>by</code>. El resultado es un objeto de tipo <code>sf</code>.</p>
 <pre class="r"><code># Suma de áreas de cantones por provincia
-aggregate(cr_cantones[&quot;area&quot;], by = list(cr_cantones$provincia), FUN = sum, na.rm = TRUE)</code></pre>
+aggregate(
+  cr_cantones[&quot;area&quot;], 
+  by = list(cr_cantones$provincia), 
+  FUN = sum, 
+  na.rm = TRUE
+)</code></pre>
 <pre><code>## Simple feature collection with 7 features and 2 fields
 ## Attribute-geometry relationship: 0 constant, 1 aggregate, 1 identity
 ## geometry type:  GEOMETRY

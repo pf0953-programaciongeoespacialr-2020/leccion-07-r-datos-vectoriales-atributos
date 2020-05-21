@@ -283,7 +283,12 @@ La función [aggregate()](https://rdrr.io/r/stats/aggregate.html) del paquete [s
 
 ```{r}
 # Suma de áreas de cantones por provincia
-aggregate(data = cr_cantones, area ~ provincia, FUN = sum, na.rm = TRUE)
+aggregate(
+  data = cr_cantones, 
+  area ~ provincia, 
+  FUN = sum, 
+  na.rm = TRUE
+)
 ```
 
 ### La función aggregate() de sf
@@ -291,7 +296,12 @@ aggregate(data = cr_cantones, area ~ provincia, FUN = sum, na.rm = TRUE)
 
 ```{r}
 # Suma de áreas de cantones por provincia
-aggregate(cr_cantones["area"], by = list(cr_cantones$provincia), FUN = sum, na.rm = TRUE)
+aggregate(
+  cr_cantones["area"], 
+  by = list(cr_cantones$provincia), 
+  FUN = sum, 
+  na.rm = TRUE
+)
 ```
 
 ### La función summarize()
