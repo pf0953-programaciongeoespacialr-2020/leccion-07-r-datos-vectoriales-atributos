@@ -130,7 +130,6 @@ cr_cantones[1:10, c("canton", "area")]
 cr_cantones[1:10, c("canton", "area"), drop=TRUE]
 ```
 
-
 ## Creación de subconjuntos
 Frecuentemente, es necesario extrer subconjuntos del conjunto de datos original, para facilidad de manejo y para atender requerimientos específicos de un análisis. En esta sección, se explican las diferentes opciones para creación de subconjuntos, tanto con el paquete ```base``` de R como con ```dplyr```. En resumen, estas son:
 
@@ -280,7 +279,7 @@ plot(cr_cantones$geometry, axes=TRUE, graticule=TRUE)
 ```
 
 ### La función aggregate() de stats
-La función [aggregate()](https://rdrr.io/r/stats/aggregate.html) del paquete ```stats``` aplica una función de agregación (ej. suma, promedio, mínimo, máximo) sobre una columna. El resultado es un objeto de tipo ```data.frame```.
+La función [aggregate()](https://rdrr.io/r/stats/aggregate.html) del paquete [stats](https://rdrr.io/r/#stats) aplica una función de agregación (ej. suma, promedio, mínimo, máximo) sobre una columna. El resultado es un objeto de tipo ```data.frame```.
 
 ```{r}
 # Suma de áreas de cantones por provincia
