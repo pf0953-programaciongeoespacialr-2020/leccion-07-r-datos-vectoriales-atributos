@@ -1,7 +1,7 @@
 ---
 title: "El lenguaje de programación R - Datos vectoriales - operaciones con atributos"
 author: "Manuel Vargas"
-date: "2020-05-18"
+date: "2020-10-07"
 output:
   html_document:
     theme: readable    
@@ -19,11 +19,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Recursos de interés
+* Sitio web del curso: [PF0953 Programación geoespacial en R](https://pf0953-programaciongeoespacialr-2020.github.io/)
+* Datos utilizados en el curso: [Datos del curso PF0953 Programación geoespacial en R](https://github.com/pf0953-programaciongeoespacialr-2020/datos)
 * [Geocomputation with R - Chapter 3 Attribute data operations](https://geocompr.robinlovelace.net/attr.html)
+* Sitio web del paquete sf: [Simple Features for R - sf](https://r-spatial.github.io/sf/)
 * Documentación del paquete dplyr de Tidyverse: [A Grammar of Data Manipulation - dplyr](https://dplyr.tidyverse.org/)
 
-* Sitio web del curso: [GF-0604: Procesamiento de datos geográficos](https://geoprocesamiento-2020i.github.io/).
-* Datos utilizados durante el curso: [Datos del curso GF-0604: Procesamiento de datos geográficos](https://github.com/geoprocesamiento-2020i/datos).
 
 ## Preparativos
 Paquetes y datos para ejemplos:
