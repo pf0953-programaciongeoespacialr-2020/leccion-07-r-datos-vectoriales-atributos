@@ -28,7 +28,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Preparativos
 Paquetes y datos para ejemplos:
-```{r message = FALSE}
+```{r message = FALSE, warning = FALSE}
 # Paquete para manejo de datos vectoriales
 library(sf)
 
@@ -39,8 +39,8 @@ library(dplyr)
 library(spData)
 ```
 
-Adicionalmente, se utiliza el conjunto de datos de los cantones de Costa Rica publicado en la [Infraestructura Nacional de Datos Espaciales de Costa Rica (SNIT)](http://www.snitcr.go.cr/), cuyas geometrías se simplifican con la funcion [st_simplify()](https://r-spatial.github.io/sf/reference/geos_unary.html), para así facilitar su manipulación:
-```{r}
+Adicionalmente, se utiliza el conjunto de datos de los cantones de Costa Rica publicado en la [Infraestructura Nacional de Datos Espaciales de Costa Rica (SNIT)](http://www.snitcr.go.cr/), cuyas geometrías se simplifican con la funcion [st_simplify()](https://r-spatial.github.io/sf/reference/geos_unary.html), para así facilitar su manipulación. Luego, se reproyectan con [st_transform()](https://www.rdocumentation.org/packages/sf/versions/0.9-5/topics/st_transform).
+```{r message = FALSE, warning = FALSE}
 # Dirección base del servicio WFS
 url_base_wfs <- "http://geos.snitcr.go.cr/be/IGN_5/wfs?"
 
@@ -48,24 +48,25 @@ url_base_wfs <- "http://geos.snitcr.go.cr/be/IGN_5/wfs?"
 # http://geos.snitcr.go.cr/be/IGN_5/wfs?request=GetCapabilities
 
 # Solicitud de la capa WFS:
-solicitud_wfs <- "request=GetFeature&service=WFS&version=2.0.0&typeName=IGN_5:limitecantonal_5k&outputFormat=application/json"
+solicitud_wfs <- 
+  "request=GetFeature&service=WFS&version=2.0.0&typeName=IGN_5:limitecantonal_5k&outputFormat=application/json"
 
 # Recuperación de los datos en un data frame
-cr_cantones_crtm05 <- st_read(paste0(url_base_wfs, solicitud_wfs))
+sf_cantones_crtm05 <- st_read(paste0(url_base_wfs, solicitud_wfs))
 
 # Tamaño del conjunto de datos original
-print(object.size(cr_cantones_crtm05), units="Mb")
+print(object.size(sf_cantones_crtm05), units="Mb")
 
 # Simplificación de las geometrías
-cr_cantones_crtm05_simp1 = st_simplify(cr_cantones_crtm05, dTolerance = 1000)
+sf_cantones_crtm05_simp1 = st_simplify(sf_cantones_crtm05, dTolerance = 1000)
 
 # Transformación al CRS WGS84
-cr_cantones = st_transform(cr_cantones_crtm05_simp1, 4326)
+sf_cantones <- st_transform(sf_cantones_crtm05_simp1, 4326)
 
 # Tamaño del conjunto de datos simplificado
-print(object.size(cr_cantones), units="Mb")
+print(object.size(sf_cantones), units="Mb")
 ```
-El conjunto de datos de cantones queda almacenado en ```cr_cantones```. Nótese la disminución del tamaño del conjunto de datos de geometrías simplificadas con respecto al original.
+El conjunto de datos de cantones queda almacenado en ```sf_cantones```. Nótese la disminución del tamaño del conjunto de datos de geometrías simplificadas con respecto al original.
 
 ## Introducción
 Se les llama **atributos** a los elementos de datos no espaciales de un conjunto de datos geográficos. Los atributos generalmente son de tipo textual o numérico. Por ejemplo, en el conjunto de datos espaciales correspondiente a los países del mundo, los atributos son los campos correspondientes al nombre del país, la cantidad de habitantes, el producto interno bruto y otros.
@@ -75,7 +76,7 @@ Las operaciones con atributos incluyen la **creación de subconjuntos (_subsetti
 ## Manejo de atributos en el paquete sf
 El paquete [sf](https://cran.r-project.org/web/packages/sf/) define una clase, también llamada ```sf```, la cual extiende la clase ```data.frame``` del paquete [base](https://stat.ethz.ch/R-manual/R-devel/library/base/html/00Index.html) de R. Los objetos de la clase ```sf``` tienen un registro (o _feature_) por cada observación y una columna por cada atributo. También tienen una columna especial para almacenar las geométrías (puntos, líneas, polígonos, etc.), la cual generalmente se denomina ```geometry``` o ```geom```. Esto permite que ```sf``` utilice métodos (i.e. funciones) de la clase ```data.frame```, tales como ```plot()``` y ```summary()```, entre otros.
 
-La lista de métodos de  ```sf``` puede obtenerse a través de la función  ```methods()```:
+La lista de métodos de  ```sf``` puede obtenerse a través de la función  [methods()](https://www.rdocumentation.org/packages/utils/versions/3.6.2/topics/methods):
 
 ```{r}
 # Métodos de la clase sf
@@ -88,47 +89,47 @@ Además de ```data.frame```, ```sf``` es compatible con clases como [tbl]() y la
 
 Funciones para obtener información básica de un data frame:
 ```{r}
-# Clase del data frame cr_cantones
-class(cr_cantones)
+# Clase de sf_cantones
+class(sf_cantones)
 
 # Dimensiones (cantidad de filas y de columnas)
-dim(cr_cantones)
+dim(sf_cantones)
 
 # Cantidad de filas
-nrow(cr_cantones)
+nrow(sf_cantones)
 
 # Cantidad de columnas
-ncol(cr_cantones)
+ncol(sf_cantones)
 
 # Nombres de las columnas
-names(cr_cantones)
+names(sf_cantones)
 ```
 
 Remoción de la columna de geometría:
 ```{r}
 # Remoción de la columna de geometría
-cr_cantones_df = st_drop_geometry(cr_cantones)
+df_cantones <- st_drop_geometry(sf_cantones)
 
 # Nombres de las columnas
-names(cr_cantones_df)
+names(df_cantones)
 
 # Clase de world_df (nótese como no se muestra ya la clase sf)
-class(cr_cantones_df)
+class(df_cantones)
 
 # Tamaño del conjunto de datos original
-print(object.size(cr_cantones), units="Kb")
+print(object.size(sf_cantones), units="Kb")
 # Tamaño del conjunto de datos sin geometrías
-print(object.size(cr_cantones_df), units="Kb")
+print(object.size(df_cantones), units="Kb")
 ```
 La función [st_drop_geometry()](https://r-spatial.github.io/sf/reference/st_geometry.html) puede ser útil cuando, por ejemplo, solo se necesita trabajar con los atributos y la columna con la geometría consume demasiada memoria del computador.
 
 También es posible ocultar la columna de geometría de un conjunto de datos, al momento de desplegarlo, mediante la opción ```drop=TRUE```:
 ```{r}
 # Sin drop=TRUE
-cr_cantones[1:10, c("canton", "area")]
+sf_cantones[1:10, c("canton", "area")]
 
 # Con drop=TRUE
-cr_cantones[1:10, c("canton", "area"), drop=TRUE]
+sf_cantones[1:10, c("canton", "area"), drop=TRUE]
 ```
 
 ## Creación de subconjuntos
@@ -148,29 +149,30 @@ La notación de paréntesis cuadrados (```[]```) y el signo de dólar (```$```) 
 
 ```{r message=FALSE, warning=FALSE, results='hide'}
 # Subconjunto especificado por posiciones de filas
-cr_cantones[1:10, ]
+sf_cantones[1:10, ]
 ```
 
 ```{r}
 # Subconjunto especificado por posiciones de columnas
-cr_cantones[, 8:10]
+sf_cantones[, 8:10]
 
 # Subconjunto especificado por nombres de columnas
-cr_cantones[, c("canton", "area", "provincia")]
+sf_cantones[, c("canton", "area", "provincia")]
 ```
 
 Especificación mediante una condición:
 ```{r}
 # Cantones de la provincia de Cartago
-cr_cantones[cr_cantones$provincia == "Cartago", c("canton", "provincia"), drop=TRUE]
+sf_cantones[sf_cantones$provincia == "Cartago", c("canton", "provincia"), drop = TRUE]
 ```
 
 #### La función subset()
-La función [subset()](https://rdrr.io/r/base/subset.html) también retorna un subconjunto que cumple una condición:
+La función [subset()](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/subset) también retorna un subconjunto que cumple una condición:
 ```{r}
 # Cantones con área >= 2000 km2
-subset(cr_cantones[, c("canton", "area"), drop=TRUE], 
-       area >= 2000
+subset(
+  sf_cantones[, c("canton", "area"), drop=TRUE], 
+  area >= 2000
 )
 ```
 
@@ -193,10 +195,16 @@ La función [select()](https://dplyr.tidyverse.org/reference/select.html) permit
 
 ```{r}
 # Selección de columnas
-select(cr_cantones, canton, provincia)
+select(
+  sf_cantones, 
+  canton, provincia
+)
 
 # Selección y renombramiento de la columna area
-select(cr_cantones, canton, area_km2=area, provincia)
+select(
+  sf_cantones, 
+  canton, area_km2=area, provincia
+)
 ```
 
 #### La función slice()
@@ -204,7 +212,10 @@ select(cr_cantones, canton, area_km2=area, provincia)
 
 ```{r results='hide'}
 # Subconjunto especificado mediante un rango de filas
-slice(cr_cantones, 1:10)
+slice(
+  sf_cantones, 
+  1:10
+)
 ```
 
 #### La función filter()
@@ -212,7 +223,10 @@ La función [filter()](https://dplyr.tidyverse.org/reference/filter.html) es el 
 
 ```{r}
 # Androides de "La Guerra de las Galaxias"
-filter(starwars, species=="Droid")
+filter(
+  starwars, 
+  species=="Droid"
+)
 ```
 
 Las funciones del paquete ```dplyr``` suelen ser utilizadas conjuntamente con el [operador _pipe_ (%>%)](http://r4ds.had.co.nz/pipes.html), el cual posibilita el "encadenamiento" de funciones: la salida de la función previa se convierte en el primer argumento de la siguiente función. En el siguiente ejemplo, el conjunto de datos [starwars](https://dplyr.tidyverse.org/reference/starwars.html) se pasa como entrada a la función ```filter()```, para filtrar los personajes humanos. Seguidamente, el resultado se pasa a la función ```select()```, para seleccionar las columnas  ```name ```, ```homeworld``` y ```species```. Finalmente, la función ```slice()``` reduce el resultado a las 10 primeras filas.
@@ -220,9 +234,9 @@ Las funciones del paquete ```dplyr``` suelen ser utilizadas conjuntamente con el
 ```{r}
 # Encadenamiento de funciones mediante pipe (%>%)
 starwars %>%
-filter(species == "Human") %>%
-select(name, homeworld, species) %>%
-slice(1:10)
+  filter(species == "Human") %>%
+  select(name, homeworld, species) %>%
+  slice(1:10)
 ```
 
 Una alternativa al uso de _pipes_ es el anidamiento de las funciones:
@@ -268,7 +282,7 @@ st_read(paste0(url_base_wfs, solicitud_provincias_wfs)) %>%
 
 st_read(paste0(url_base_wfs, solicitud_cantones_wfs)) %>% 
   st_simplify(dTolerance = 1000) %>% 
-  st_transform(4326) -> cr_cantones
+  st_transform(4326) -> sf_cantones
 ```
 
 ```{r message=FALSE, warning=FALSE, results='hide'}
@@ -276,7 +290,7 @@ st_read(paste0(url_base_wfs, solicitud_cantones_wfs)) %>%
 plot(cr_provincias$geometry, axes=TRUE, graticule=TRUE)
 
 # Mapeo de la capa de cantones
-plot(cr_cantones$geometry, axes=TRUE, graticule=TRUE)
+plot(sf_cantones$geometry, axes=TRUE, graticule=TRUE)
 ```
 
 ### La función aggregate() de stats
@@ -285,7 +299,7 @@ La función [aggregate()](https://rdrr.io/r/stats/aggregate.html) del paquete [s
 ```{r}
 # Suma de áreas de cantones por provincia
 aggregate(
-  data = cr_cantones, 
+  data = sf_cantones, 
   area ~ provincia, 
   FUN = sum, 
   na.rm = TRUE
@@ -298,8 +312,8 @@ aggregate(
 ```{r}
 # Suma de áreas de cantones por provincia
 aggregate(
-  cr_cantones["area"], 
-  by = list(cr_cantones$provincia), 
+  sf_cantones["area"], 
+  by = list(sf_cantones$provincia), 
   FUN = sum, 
   na.rm = TRUE
 )
@@ -310,7 +324,7 @@ La función [summarize()](https://dplyr.tidyverse.org/reference/summarise.html) 
 
 ```{r}
 # Suma de áreas de cantones por provincia
-cr_cantones %>%
+sf_cantones %>%
 group_by(provincia) %>%
 summarize(area_km2 = sum(area, na.rm = TRUE))
 ```
@@ -319,7 +333,7 @@ Nótese que este enfoque permite renombrar las variables, como también se hace 
 
 ```{r}
 # Suma total de las áreas de cantones
-cr_cantones %>% 
+sf_cantones %>% 
 summarize(area_km2 = sum(area, na.rm = TRUE), cantidad_cantones = n())
 ```
 
@@ -327,7 +341,7 @@ El siguiente ejemplo utiliza otras funciones del paquete ```dplyr``` para encont
 
 ```{r}
 # Área y cantidad de cantones de las tres provincias más grandes
-cr_cantones %>% 
+sf_cantones %>% 
   select(area, provincia) %>% 
   group_by(provincia) %>% 
   summarize(area = sum(area, na.rm = TRUE), cantidad_cantones = n()) %>% 
